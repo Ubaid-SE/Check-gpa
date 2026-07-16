@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — GPA Calculator Pakistan</title>
+<meta name="description" content="Get in touch with the team behind the GPA Calculator tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c2430; --paper: #f6f4ee; --paper-raised: #ffffff;
+    --stamp-green: #2f6b4f; --line: #d8d3c5; --muted: #6b7180;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+  .back { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--ink); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 36px; margin: 24px 0 24px; }
+  .card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 4px; padding: 36px 40px; }
+  p { margin: 0 0 14px; font-size: 15px; }
+  label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 18px 0 6px; }
+  input, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px;
+    font-family: 'Inter', sans-serif; font-size: 14px; background: var(--paper);
+  }
+  textarea { min-height: 120px; resize: vertical; }
+  .btn {
+    margin-top: 20px; padding: 12px 24px; background: var(--ink); color: var(--paper);
+    border: none; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn:hover { opacity: 0.85; }
+  a { color: var(--stamp-green); }
+  .email-line { font-family: 'IBM Plex Mono', monospace; font-size: 15px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">&larr; Back to calculator</a>
+  <h1>Contact Us</h1>
+
+  <div class="card">
+    <p>Found a subject, grade, or GPA calculation that looks wrong? Have a question or suggestion? We'd like to hear about it.</p>
+    <p class="email-line">📧 <a href="mailto:mubaidurrehman7861@gmail.com">mubaidurrehman7861@gmail.com</a></p>
+
+    <label for="name">Your name</label>
+    <input type="text" id="name" placeholder="Your name">
+
+    <label for="email">Your email</label>
+    <input type="email" id="email" placeholder="you@example.com">
+
+    <label for="message">Message</label>
+    <textarea id="message" placeholder="Tell us what happened or what you'd like to see..."></textarea>
+
+    <button class="btn" onclick="sendMail()">Send Message</button>
+  </div>
+</div>
+
+<script>
+function sendMail() {
+  const name = document.getElementById('name').value || 'there';
+  const email = document.getElementById('email').value;
+  const message = document.getElementById('message').value;
+  const subject = encodeURIComponent('GPA Calculator - Message from ' + name);
+  const body = encodeURIComponent(message + '\n\n— ' + name + ' (' + email + ')');
+  window.location.href = `mailto:mubaidurrehman7861@gmail.com?subject=${subject}&body=${body}`;
+}
+</script>
+</body>
+</html>

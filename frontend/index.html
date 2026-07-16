@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPA Calculator Pakistan — Upload Result, Get Instant GPA</title>
+<meta name="description" content="Upload a photo of your result card and get your GPA calculated instantly. No manual entry, no sign-up. Built for Pakistani university students (HEC 4.0 scale).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c2430;
+    --paper: #f6f4ee;
+    --paper-raised: #ffffff;
+    --stamp-red: #a4372a;
+    --stamp-green: #2f6b4f;
+    --line: #d8d3c5;
+    --muted: #6b7180;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+
+  header { text-align: center; margin-bottom: 40px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(32px, 5vw, 48px);
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: var(--muted); font-size: 16px; max-width: 480px; margin: 0 auto; }
+
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(28,36,48,0.04);
+    padding: 40px;
+    position: relative;
+  }
+
+  .upload-zone {
+    border: 2px dashed var(--line);
+    border-radius: 4px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--stamp-green);
+    background: #f0f5f1;
+  }
+  .upload-zone input { display: none; }
+  .upload-icon { font-size: 32px; margin-bottom: 12px; }
+  .upload-text { font-weight: 500; margin-bottom: 4px; }
+  .upload-hint { font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  #preview { display: none; margin-top: 20px; text-align: center; }
+  #preview img { max-width: 100%; max-height: 260px; border-radius: 4px; border: 1px solid var(--line); }
+
+  .btn {
+    display: block;
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .loading { display: none; text-align: center; padding: 32px 0; }
+  .loading.active { display: block; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--line);
+    border-top-color: var(--stamp-green);
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
+
+  .error-box {
+    display: none;
+    background: #fbeceb;
+    border: 1px solid #e3b3ac;
+    color: var(--stamp-red);
+    padding: 14px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+  .error-box.active { display: block; }
+
+  #resultsSection { display: none; margin-top: 32px; }
+  #resultsSection.active { display: block; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th {
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  td { padding: 8px 6px; border-bottom: 1px solid #eee5db; font-size: 14px; }
+  td input, td select {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 4px 6px;
+    border-radius: 3px;
+  }
+  td input:hover, td select:hover, td input:focus, td select:focus {
+    border-color: var(--line);
+    background: #faf9f5;
+    outline: none;
+  }
+  .remove-row { cursor: pointer; color: var(--muted); font-size: 16px; }
+  .remove-row:hover { color: var(--stamp-red); }
+
+  .add-row-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
+    border: 1px dashed var(--line);
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .add-row-btn:hover { border-color: var(--stamp-green); color: var(--stamp-green); }
+
+  .gpa-stamp {
+    margin-top: 32px;
+    text-align: center;
+    padding: 32px 20px;
+    border: 3px double var(--stamp-green);
+    border-radius: 6px;
+    background: #f4f8f5;
+    transform: rotate(-0.6deg);
+  }
+  .gpa-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--stamp-green);
+    margin-bottom: 6px;
+  }
+  .gpa-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 64px;
+    color: var(--stamp-green);
+    line-height: 1;
+  }
+  .gpa-scale { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  footer {
+    max-width: 760px; margin: 60px auto 0; padding: 0 20px;
+    color: var(--muted); font-size: 13px;
+  }
+  footer .info-block { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 24px; }
+  footer h2 { font-family: 'Fraunces', serif; font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+  footer a { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Pakistan &middot; HEC 4.0 Scale</div>
+    <h1>Upload your result.<br>Get your GPA.</h1>
+    <p class="sub">No typing subjects one by one. Just upload a photo of your result card — the rest is automatic.</p>
+  </header>
+
+  <div class="card">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="upload-icon">📄</div>
+      <div class="upload-text">Click to upload or drag your result card here</div>
+      <div class="upload-hint">JPG, PNG — clear photo works best</div>
+    </div>
+
+    <div id="preview">
+      <img id="previewImg" alt="Result card preview">
+    </div>
+
+    <button class="btn" id="calculateBtn" disabled>Extract & Calculate GPA</button>
+
+    <div class="loading" id="loadingBox">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">Reading your result card…</div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="resultsSection">
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th style="width:90px">Credit Hrs</th>
+            <th style="width:80px">Grade</th>
+            <th style="width:90px">Quality Pts</th>
+            <th style="width:24px"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <button class="add-row-btn" id="addRowBtn">+ Add subject</button>
+
+      <div class="gpa-stamp">
+        <div class="gpa-label">Your GPA</div>
+        <div class="gpa-value" id="gpaValue">0.00</div>
+        <div class="gpa-scale">out of 4.00</div>
+      </div>
+
+      <button class="btn secondary" id="resetBtn">Calculate another result</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="info-block">
+    <h2>How GPA is calculated</h2>
+    <p>Each grade carries quality points (A = 4.0, B+ = 3.3, C = 2.0, and so on, following the HEC 4.0 scale used across Pakistani universities). Your GPA is the sum of (quality points × credit hours) for every subject, divided by your total credit hours.</p>
+  </div>
+  <div class="info-block">
+    <h2>Frequently asked</h2>
+    <p><strong>Is this free?</strong> Yes, fully free — no account needed.</p>
+    <p><strong>Is my result stored anywhere?</strong> No. Your image is processed to read the text and then discarded — nothing is saved.</p>
+    <p><strong>The AI misread a subject — what do I do?</strong> Every field is editable. Just click and correct it before calculating.</p>
+  </div>
+  <div class="info-block" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px;">
+    <a href="about.html">About</a> &middot; <a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Service</a> &middot; <a href="contact.html">Contact</a>
+  </div>
+  <div class="info-block" style="font-size: 11px; color: var(--muted);">
+    &copy; 2026 GPA Calculator Pakistan. All rights reserved. This tool, its design, and underlying code are proprietary and may not be copied, reproduced, or reverse-engineered without permission.
+  </div>
+</footer>
+
+<script>
+const API_URL = 'http://localhost:5000/api/extract'; // change to your deployed backend URL
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const previewImg = document.getElementById('previewImg');
+const calculateBtn = document.getElementById('calculateBtn');
+const loadingBox = document.getElementById('loadingBox');
+const loadingText = document.getElementById('loadingText');
+const errorBox = document.getElementById('errorBox');
+const resultsSection = document.getElementById('resultsSection');
+const tableBody = document.getElementById('tableBody');
+const gpaValue = document.getElementById('gpaValue');
+const addRowBtn = document.getElementById('addRowBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const GRADE_SCALE = {
+  'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+  'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+  'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+  'D+': 1.3, 'D': 1.0, 'F': 0.0
+};
+
+let selectedFile = null;
+const loadingMessages = ['Reading your result card…', 'Finding subjects and grades…', 'Almost done…'];
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) {
+    showError('Please upload an image file.');
+    return;
+  }
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  calculateBtn.disabled = false;
+  hideError();
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('active');
+}
+function hideError() { errorBox.classList.remove('active'); }
+
+calculateBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  hideError();
+  calculateBtn.disabled = true;
+  loadingBox.classList.add('active');
+
+  let msgIndex = 0;
+  const msgInterval = setInterval(() => {
+    msgIndex = (msgIndex + 1) % loadingMessages.length;
+    loadingText.textContent = loadingMessages[msgIndex];
+  }, 1800);
+
+  try {
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+
+    const res = await fetch(API_URL, { method: 'POST', body: formData });
+    const data = await res.json();
+
+    clearInterval(msgInterval);
+    loadingBox.classList.remove('active');
+
+    if (!res.ok) {
+      showError(data.error || 'Something went wrong. Please try again.');
+      calculateBtn.disabled = false;
+      return;
+    }
+
+    if (!data.subjects || data.subjects.length === 0) {
+      showError('Could not find subjects in this image. Try a clearer photo, or add subjects manually below.');
+      renderTable([]);
+    } else {
+      renderTable(data.subjects);
+    }
+
+    resultsSection.classList.add('active');
+    calculateBtn.disabled = false;
+  } catch (err) {
+    clearInterval(msgInterval);
+    loadingBox.classList.remove('active');
+    showError('Could not connect to the server. Please try again.');
+    calculateBtn.disabled = false;
+  }
+});
+
+function renderTable(subjects) {
+  tableBody.innerHTML = '';
+  if (subjects.length === 0) {
+    addRow({ subject: '', creditHours: 3, grade: 'A' });
+  } else {
+    subjects.forEach(addRow);
+  }
+  calculateGPA();
+}
+
+function addRow(subj = { subject: '', creditHours: 3, grade: 'A', qualityPoints: null }) {
+  const tr = document.createElement('tr');
+  const qpVal = (subj.qualityPoints !== null && subj.qualityPoints !== undefined) ? subj.qualityPoints : '';
+  tr.innerHTML = `
+    <td><input type="text" value="${escapeHtml(subj.subject)}" class="subject-input" placeholder="Subject name"></td>
+    <td><input type="number" value="${subj.creditHours}" min="0" max="10" class="credit-input"></td>
+    <td>
+      <select class="grade-input">
+        ${Object.keys(GRADE_SCALE).map(g => `<option value="${g}" ${g === subj.grade ? 'selected' : ''}>${g}</option>`).join('')}
+      </select>
+    </td>
+    <td><input type="number" step="0.01" value="${qpVal}" class="qp-input" placeholder="auto"></td>
+    <td><span class="remove-row" title="Remove">✕</span></td>
+  `;
+  tr.querySelectorAll('input, select').forEach(el => el.addEventListener('input', calculateGPA));
+  tr.querySelector('.remove-row').addEventListener('click', () => { tr.remove(); calculateGPA(); });
+  tableBody.appendChild(tr);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+addRowBtn.addEventListener('click', () => addRow());
+
+function calculateGPA() {
+  const rows = tableBody.querySelectorAll('tr');
+  let totalPoints = 0, totalCredits = 0;
+  rows.forEach(row => {
+    const credit = parseFloat(row.querySelector('.credit-input').value) || 0;
+    const grade = row.querySelector('.grade-input').value;
+    const qpInput = row.querySelector('.qp-input').value;
+    const qp = qpInput !== '' ? parseFloat(qpInput) : (GRADE_SCALE[grade] ?? 0) * credit;
+    totalPoints += qp;
+    totalCredits += credit;
+  });
+  const gpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
+  gpaValue.textContent = gpa.toFixed(2);
+}
+
+resetBtn.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  preview.style.display = 'none';
+  resultsSection.classList.remove('active');
+  calculateBtn.disabled = true;
+  hideError();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
+
+</body>
+</html>
